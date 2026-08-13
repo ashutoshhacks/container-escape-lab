@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  vulnerable-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Port 8080 for the vulnerable app
+    ports:
+      - "8080:5000"
+
+    # !! DELIBERATE MISCONFIGURATION — DO NOT DO THIS IN PRODUCTION !!
+    # Mounts host Docker socket into container
+    # Gives container full control over host Docker Engine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    restart: unless-stopped

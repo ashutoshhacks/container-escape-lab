@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  hardened-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "9090:5000"    # different port so both can run simultaneously
+
+    # FIX 4: No docker socket mount
+    # The vulnerable version had:
+    #   volumes:
+    #     - /var/run/docker.sock:/var/run/docker.sock
+    # That line does not exist here. Docker socket stays on host only.
+
+    # FIX 5: Read-only filesystem
+    # Container cannot write anywhere except explicitly allowed tmpfs mounts
+    read_only: true
+
+    # Allow Flask to write to /tmp only (needs writable tmp for sessions)
+    tmpfs:
+      - /tmp
+
+    # FIX 6: Drop all Linux capabilities
+    # Containers get some capabilities by default — we drop everything
+    cap_drop:
+      - ALL
+
+    # FIX 7: Prevent privilege escalation inside container
+    security_opt:
+      - no-new-privileges:true
+
+    restart: unless-stopped
